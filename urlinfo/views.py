@@ -37,14 +37,17 @@ def home(request):
         alexarank = alexa_rank(request.POST['url'])
 
         get_admin_contact(url)
+
         address_data = get_address(ip)
-        get_social_media_handles(url_ip)
+        
+        social_media_handles = get_social_media_handles(url_ip)
         
         # get_ecommerce_site(request.POST['url'])
         context.update({
             'metaTags': metaTags,
             'alexarank': alexarank,
             'companyInfo': address_data,
+            'socialmedia': social_media_handles,
         })
     else:
         try:
@@ -93,12 +96,6 @@ def get_address(ip):
     r = requests.get(url)
     data = json.loads(r.content.decode('utf-8'))
 
-    # IP=data['ip']
-    # org=data['org']
-    # city = data['city']
-    # country=data['country']
-    # region=data['region']
-
     location = data['loc']
     geolocator = Nominatim()
     location = geolocator.reverse(location)
@@ -143,7 +140,7 @@ def get_social_media_handles(url):
             if sm_site in link.attrs['href']:
                 sm_sites_present.append(link.attrs['href'])
 
-    print(sm_sites_present)
+    return sm_sites_present
 
 # def get_ecommerce_site(url):
 #     """

@@ -35,7 +35,7 @@
     <!--  
     Stylesheets
     =============================================
-    
+    # TO-DO: need to sift through the stylesheets and remove unwanted stylesheets. These are all for the whole template set and many are not used in this project.
     -->
     <!-- Default stylesheets-->
     <link href="{% static 'lib/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -74,18 +74,38 @@
             <div class="row">
               <div class="col-sm-8 col-sm-offset-2">
                 <h2 class="module-title font-alt">Senior Python Developer - Technical Project</h2>
+                <p>Note: Please only enter sites with http scheme and not https scheme. It will not work for https. </p>
+                <p>Note: The only format that will work is 'www.example.com'. Please write the complete domain of the site.</p>
+                <div class="row">
+                  <div class="col-sm-12 col-md-6 col-lg-6">
+                  <p>
+                    <ul> 
+                      The version that will work:
+                      <li>www.example.com</li>
+                    </ul>
+                  </p>
+                  </div>
+                  <div class="col-sm-12 col-md-6 col-lg-6">
+                  <p>
+                    <ul> 
+                      The versions that will not work:
+                      <li>http://www.example.com</li>
+                      <li>example</li>
+                      <li>www.example</li>
+                    </ul>
+                  </p>
+                  </div>
+                </div>
                 <form method="POST">
                   {% csrf_token %}
                   <div class="form-group">
                     <div class="input-group">
                       <div class="input-group-addon"><i class="icon-link"></i></div>
-                      <input class="form-control input-lg" id="url_id" name="url" placeholder="Enter your url and let the magic happen"/>
-                      <!-- <input class="form-control input-lg" type="url" id="urlID" name="url" placeholder="Enter your url and let the magic happen" required="required"/> -->
-                    </div>
+                        <input class="form-control input-lg" id="url_id" name="url" placeholder="Enter your url and let the magic happen"/>
+                      </div>
                   </div>
                   <div class="form-group">
-                    <button type="submit" class="btn btn-g btn-round btn-block btn-lg mt-20">Submit</button>  
-                    <!-- <button class="btn btn-g btn-round btn-block btn-lg mt-20" id="urlsubmit" type="submit"><i class="fa fa-paper-plane-o"></i> Reserve</button> -->
+                    <button type="submit" class="btn btn-g btn-round btn-block btn-lg mt-20">Submit</button>
                   </div>
                 </form>
               </div>
@@ -96,9 +116,9 @@
                   <div class="features-icon"><span class="icon-clock"></span></div>
                   <h3 class="features-title font-alt">Meta-Tags</h3>
                   <ul>
-                    <li>Title: {{metaTags.title}}</li>
-                    <li>Description: {{metaTags.description}}</li>
-                    <li>Keywords: {{metaTags.keywords}}</li>
+                    {% if metaTags.title %}<li><b>Title: </b>{{metaTags.title}}</li>{% endif %}
+                    {% if metaTags.description %}<li><b>Description: </b>{{metaTags.description}}</li>{% endif %}
+                    {% if metaTags.keywords %}<li><b>Keywords: </b>{{metaTags.keywords}}</li>{% endif %}
                   </ul>
                 </div>
               </div>
@@ -107,21 +127,30 @@
                   <div class="features-icon"><span class="icon-streetsign"></span></div>
                   <h3 class="features-title font-alt">Company Info</h3> 
                   <ul>
-                    <li>Street Address: {{companyInfo.address}}</li>
-                    <li>Country: {{companyInfo.country}}</li>
-                    <li>Phone Number: {{phonenumber}}</li>
-                    <li>Admin Contact: {{admincontact}}</li>
-                    <li>Time Zone: {{companyInfo.timezone}}</li>
+                    {% if companyInfo.address %}<li><b>Street Address: </b>{{companyInfo.address}}</li>{% endif %}
+                    {% if companyInfo.country %}<li><b>Country: </b>{{companyInfo.country}}</li>{% endif %}
+                    {% if phonenumber %}<li><b>Phone Number: </b>{{phonenumber}}</li>{% endif %}
+                    {% if admincontact %}<li><b>Admin Contact: </b>{{admincontact}}</li>{% endif %}
+                    {% if companyInfo.address %}<li><b>Time Zone: </b>{{companyInfo.timezone}}</li>{% endif %}
                   </ul> 
                 </div>
               </div>
               <div class="col-sm-6 col-md-3 col-lg-3">
                 <div class="features-item">
                   <div class="features-icon"><span class="icon-map"></span></div>
-                  <h3 class="features-title font-alt">Social Media pages and e-commerce platform</h3>
+                  <h3 class="features-title font-alt">Social Media pages</h3>
                   <ul>
-                    <li>Social Media: {{socialmedia}}</li>
-                    <li>E-commerce platform: {{ecommerce}}</li>
+                    {% if socialmedia %}
+                      <li><b>Social Media: </b>
+                          <ul>
+                          {% for sm in socialmedia %}
+                            <li>{{ sm }}</li>
+                          {% endfor %}
+                          </ul>
+                      </li>
+                    {% endif %}
+                      
+                    {% if ecommerce %}<li><b>E-commerce platform: </b>{{ecommerce}}</li>{% endif %}
                   </ul>
                 </div>
               </div>
@@ -130,7 +159,7 @@
                   <div class="features-icon"><span class="icon-heart"></span></div>
                   <h3 class="features-title font-alt">Alexa Rank</h3>
                   <ul>
-                    <li>Alexa Rank: {{alexarank}}</li>
+                    {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% else %}<b>Alexa Rank is not available for this site.</b>{% endif %}
                   </ul>
                 </div>
               </div>
@@ -141,6 +170,7 @@
     </main>
     <!--  
     JavaScripts
+    # TO-DO: need to sift through the javascripts and remove unwanted scripts.
     =============================================
     -->
     <script src="{% static 'lib/jquery/dist/jquery.js' %}"></script>
