@@ -37,3 +37,15 @@ Since I didn't have time at all during the week to work on the project in detail
 
 The following URLS are tested: 'taxals.com', 'google.com', 'facebook.com'
 Please be very speciifc to the url format you enter.
+
+Note: Please only enter sites with http scheme and not https scheme. It will not work for https.
+
+Note: The only format that will work is 'www.example.com'. Please write the complete domain of the site.
+
+    The version that will work:
+    www.example.com
+
+    The versions that will not work:
+    http://www.example.com
+    example
+    www.example
