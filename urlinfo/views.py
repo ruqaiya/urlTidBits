@@ -1,29 +1,17 @@
 from django.shortcuts import redirect, render, render_to_response
 from django.template import RequestContext
-
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import requests
-
-# import seolib as seo
 import whois
 
 import re
 import json
-
 import socket
-
-from geopy.geocoders import Nominatim
-
 import re
 import http.client
-
+from geopy.geocoders import Nominatim
 from builtwith import BuiltWith
-
-# from ipwhois import IPWhois
-
-
-# import httplib
 
 
 # Create your views here.
@@ -32,18 +20,26 @@ def home(request):
     context = {}
 
     if request.method == 'POST':
-        ip = get_ip(request.POST['url'])
-        url_ip = 'http://'+ip
-        url = 'http://'+request.POST['url']
-        
-        metaTags = get_meta_tags(url_ip)
-        alexarank = alexa_rank(request.POST['url'])
+        try:
+            ip = get_ip(request.POST['url'])
+        except:
+            ip = None
 
+        if ip is not None:
+            url_ip = 'http://'+ip
+            metaTags = get_meta_tags(url_ip)
+            address_data = get_address(ip)
+            social_media_handles = get_social_media_handles(url_ip)        
+        else:
+            ip = 'error'
+            metaTags = None
+            address_data = None
+            social_media_handles = None
+        
+        url = 'http://'+request.POST['url']
         admin_contact = get_admin_contact(url)
 
-        address_data = get_address(ip)
-        
-        social_media_handles = get_social_media_handles(url_ip)
+        alexarank = alexa_rank(request.POST['url'])
         
         # get_ecommerce_site(request.POST['url'])
 
@@ -53,6 +49,7 @@ def home(request):
             'companyInfo': address_data,
             'socialmedia': social_media_handles,
             'admincontact': admin_contact,
+            'ip':ip,
         })
     else:
         pass
@@ -61,31 +58,39 @@ def home(request):
 
 
 def get_meta_tags(ip):
-    response = requests.get(ip)
-    soup = BeautifulSoup(response.content, "html.parser")
+    """
+    Getting meta tags by scraping through the page and looking for the particular tags.
+    """
+    try:
+        response = requests.get(ip)
+        soup = BeautifulSoup(response.content, "html.parser")
 
-    metas = soup.find_all('meta')
+        metas = soup.find_all('meta')
 
-    metaTagContent={}
-    for meta in metas:
-        if 'name' in meta.attrs:
-            metaTagContent[meta.attrs['name']]=meta.attrs['content']
-                   
-    return metaTagContent
+        metaTagContent={}
+        for meta in metas:
+            if 'name' in meta.attrs:
+                metaTagContent[meta.attrs['name']]=meta.attrs['content']
+                       
+        return metaTagContent
+    except:
+        return None
 
 def alexa_rank(url):
     """
     Parsing XML from data.alexa.com
     and taking alexa rank out of it.
     """
-    alexa_rank_url = "http://data.alexa.com/data?cli=10&dat=s&url="+ url
-    r = requests.get(alexa_rank_url)
-    bs = None
+    try:
+        alexa_rank_url = "http://data.alexa.com/data?cli=10&dat=s&url="+ url
+        r = requests.get(alexa_rank_url)
+    except:
+        bs = None
     
     try:
         bs = BeautifulSoup(r.content, "xml").find("REACH")['RANK']
     except:
-        pass
+        bs = 'No rank is available for this site.'
 
     return bs
 
@@ -98,10 +103,15 @@ def get_admin_contact(url):
     Since I did not have time to setup my python environment for ssl so I couldn't traverse https site.
     That would have given me a phone number as well. 
     """
-    w = whois.whois(url)
     data = {}
+
     try:
-        data['name'] = w['name']
+        w = whois.whois(url)
+    except:
+        pass
+    
+    try:
+        data['name'] = w['name']        # adding each data element in a seperate try/catch so nothing is missed and all data that is available is extracted.
     except:
         pass
 
@@ -117,34 +127,42 @@ def get_admin_contact(url):
 
     return data
 
+###### GET CONTACT DETAILS + STREET ADDRESS + TIMEZONE ##########################
 
 def get_address(ip):
-    url = 'https://ipinfo.io/'+ip+'/json'
-    r = requests.get(url)
-    data = json.loads(r.content.decode('utf-8'))
+    try:
+        url = 'https://ipinfo.io/'+ip+'/json'                   # getting Country, co-ordinates and street address from ipinfo
+        r = requests.get(url)
+        data = json.loads(r.content.decode('utf-8'))
 
-    location = data['loc']
-    geolocator = Nominatim()
-    location = geolocator.reverse(location)
-    data['address'] = location.address
+        location = data['loc']
+        geolocator = Nominatim()
+        location = geolocator.reverse(location)
+        data['address'] = location.address
+    except:
+        data = {}
 
-    FREEGEOPIP_URL = 'http://freegeoip.net/json'
-    url = '{}/{}'.format(FREEGEOPIP_URL, ip)
-    response = requests.get(url)
-    response_data = response.json()
-    data['timezone'] = response_data['time_zone']
+    try:
+        FREEGEOPIP_URL = 'http://freegeoip.net/json'            # getting timezone from geoip
+        url = '{}/{}'.format(FREEGEOPIP_URL, ip)
+        response = requests.get(url)
+        response_data = response.json()
+        data['timezone'] = response_data['time_zone']
+    except:
+        pass
 
     return data
 
-def get_ip(url):
-    ip = get_ips_for_host(url)
-    
+################### GET IP FROM URL ######################
+
+def get_ip(url):    
     try:
+        ip = get_ips_for_host(url)
         return(ip[2][0])
     except:
-        print('couldn\'t get ip')
+        ip = None
 
-    return None
+    return ip
 
 def get_ips_for_host(host):
     try:
@@ -153,26 +171,32 @@ def get_ips_for_host(host):
         ips=[]
     return ips
 
+############### GET SOCIAL MEDIA HANDLES ##############################
+
 def get_social_media_handles(url):
     """
     TO-DO: need to ignore the main site if the url is of the same social site.
     For eg if the url to test is Facebook.com we need to remove facebook.com from
     sm_sites list.
     """
-    r = requests.get(url)
-    sm_sites = ['twitter.com','facebook.com', 'plus.google.com', 'pinterest.com', 'instagram.com']
-    sm_sites_present = []
+    try:
+        r = requests.get(url)
+        sm_sites = ['twitter.com','facebook.com', 'plus.google.com', 'pinterest.com', 'instagram.com']
+        sm_sites_present = []
 
-    soup = BeautifulSoup(r.content, 'html5lib')
-    all_links = soup.find_all('a', href = True)
+        soup = BeautifulSoup(r.content, 'html5lib')
+        all_links = soup.find_all('a', href = True)
 
+        for sm_site in sm_sites:
+            for link in all_links:
+                if sm_site in link.attrs['href']:
+                    sm_sites_present.append(link.attrs['href'])
 
-    for sm_site in sm_sites:
-        for link in all_links:
-            if sm_site in link.attrs['href']:
-                sm_sites_present.append(link.attrs['href'])
+        return sm_sites_present
+    except:
+        return None
 
-    return sm_sites_present
+############### GET ECOMMERCE PLATFORM ##############################
 
 # def get_ecommerce_site(url):
 #     """

@@ -111,6 +111,17 @@
               </div>
             </div>
             <div class="row multi-columns-row">
+              {% if ip %}
+              <div align="center">
+                <p>
+                  {% if ip == 'error' %}  
+                    <b>There was an error getting the site's ip for which reason many functions will not work. Please confirm the entered format is correct and try again.</b>
+                  {% else %}
+                    <b>The site's IP is: {{ip}}</b>
+                  {% endif %}
+                </p>
+              </div>
+              {% endif %}
               <div class="col-sm-6 col-md-3 col-lg-3">
                 <div class="features-item">
                   <div class="features-icon"><span class="icon-clock"></span></div>
@@ -160,7 +171,7 @@
                   <div class="features-icon"><span class="icon-heart"></span></div>
                   <h3 class="features-title font-alt">Alexa Rank</h3>
                   <ul>
-                    {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% else %}<b>Alexa Rank is not available for this site.</b>{% endif %}
+                    {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% endif %}
                   </ul>
                 </div>
               </div>
