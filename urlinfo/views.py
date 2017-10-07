@@ -50,6 +50,7 @@ def home(request):
             'socialmedia': social_media_handles,
             'admincontact': admin_contact,
             'ip':ip,
+            'response': True,
         })
     else:
         pass

@@ -32,10 +32,13 @@ Since I didn't have time at all during the week to work on the project in detail
 	2) Cater HTTPS urls as well.
 	3) If a social media page is entered like facebook.com, the social media handles functionality breaks. I would have liked to fix that.
 3) Make the UI much better.
+4) Test the system on all browsers, for more domains and IPS and document its limitations.
 
 ## Notes
 
 The following URLS are tested: 'taxals.com', 'google.com', 'facebook.com'
+The site is tested only on firefox.
+
 Please be very speciifc to the url format you enter.
 
 Note: Please only enter sites with http scheme and not https scheme. It will not work for https.
