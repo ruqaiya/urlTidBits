@@ -74,34 +74,12 @@
             <div class="row">
               <div class="col-sm-8 col-sm-offset-2">
                 <h2 class="module-title font-alt">Senior Python Developer - Technical Project</h2>
-                <p>Note: Please only enter sites with http scheme and not https scheme. It will not work for https. </p>
-                <p>Note: The only format that will work is 'www.example.com'. Please write the complete domain of the site.</p>
-                <div class="row">
-                  <div class="col-sm-12 col-md-6 col-lg-6">
-                  <p>
-                    <ul> 
-                      The version that will work:
-                      <li>www.example.com</li>
-                    </ul>
-                  </p>
-                  </div>
-                  <div class="col-sm-12 col-md-6 col-lg-6">
-                  <p>
-                    <ul> 
-                      The versions that will not work:
-                      <li>http://www.example.com</li>
-                      <li>example</li>
-                      <li>www.example</li>
-                    </ul>
-                  </p>
-                  </div>
-                </div>
                 <form method="POST">
                   {% csrf_token %}
                   <div class="form-group">
                     <div class="input-group">
                       <div class="input-group-addon"><i class="icon-link"></i></div>
-                        <input class="form-control input-lg" id="url_id" name="url" placeholder="Enter your url and let the magic happen"/>
+                        <input class="form-control input-lg" id="url_id" name="url" placeholder="www.example.com - Enter your url and let the magic happen"/>
                       </div>
                   </div>
                   <div class="form-group">
@@ -110,7 +88,19 @@
                 </form>
               </div>
             </div>
+            {% if response %}
             <div class="row multi-columns-row">
+              {% if ip %}
+              <div align="center">
+                <p>
+                  {% if ip == 'error' %}  
+                    <b>There was an error getting the site's ip for which reason many functions will not work. Please confirm the entered format is correct and try again.</b>
+                  {% else %}
+                    <b>The site's IP is: {{ip}}</b>
+                  {% endif %}
+                </p>
+              </div>
+              {% endif %}
               <div class="col-sm-6 col-md-3 col-lg-3">
                 <div class="features-item">
                   <div class="features-icon"><span class="icon-clock"></span></div>
@@ -160,11 +150,12 @@
                   <div class="features-icon"><span class="icon-heart"></span></div>
                   <h3 class="features-title font-alt">Alexa Rank</h3>
                   <ul>
-                    {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% else %}<b>Alexa Rank is not available for this site.</b>{% endif %}
+                    {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% endif %}
                   </ul>
                 </div>
               </div>
             </div>
+            {% endif %}
           </div>
         </section>
         <hr class="divider-w">
