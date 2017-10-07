@@ -20,6 +20,8 @@ import http.client
 
 from builtwith import BuiltWith
 
+
+
 # import httplib
 
 
@@ -36,24 +38,23 @@ def home(request):
         metaTags = get_meta_tags(url_ip)
         alexarank = alexa_rank(request.POST['url'])
 
-        get_admin_contact(url)
+        admin_contact = get_admin_contact(url)
 
         address_data = get_address(ip)
         
         social_media_handles = get_social_media_handles(url_ip)
         
         # get_ecommerce_site(request.POST['url'])
+
         context.update({
             'metaTags': metaTags,
             'alexarank': alexarank,
             'companyInfo': address_data,
             'socialmedia': social_media_handles,
+            'admincontact': admin_contact,
         })
     else:
-        try:
-            print(request.GET['url'])
-        except:
-            print('in else')
+        pass
 
     return render(request, 'home.html', context)
 
@@ -87,9 +88,34 @@ def alexa_rank(url):
 
     return bs
 
-def get_admin_contact(url):
+def get_admin_contact(url):    
+    """
+    At the moment I am simply calling whois library to get contact name and email(some times given).
+
+    Ideally wanted to traverse https://www.whois.com/whois/
+    for this information since whois library does not return the whole information.
+    Since I did not have time to setup my python environment for ssl so I couldn't traverse https site.
+    That would have given me a phone number as well. 
+    """
     w = whois.whois(url)
-    print(w)
+    data = {}
+    try:
+        data['name'] = w['name']
+    except:
+        pass
+
+    try:
+        data['email'] = w['email']
+    except:
+        pass
+
+    try:
+        data['email'] = w['emails']
+    except:
+        pass
+
+    return data
+
 
 def get_address(ip):
     url = 'https://ipinfo.io/'+ip+'/json'
@@ -127,6 +153,11 @@ def get_ips_for_host(host):
     return ips
 
 def get_social_media_handles(url):
+    """
+    TO-DO: need to ignore the main site if the url is of the same social site.
+    For eg if the url to test is Facebook.com we need to remove facebook.com from
+    sm_sites list.
+    """
     r = requests.get(url)
     sm_sites = ['twitter.com','facebook.com', 'plus.google.com', 'pinterest.com', 'instagram.com']
     sm_sites_present = []

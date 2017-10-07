@@ -129,8 +129,9 @@
                   <ul>
                     {% if companyInfo.address %}<li><b>Street Address: </b>{{companyInfo.address}}</li>{% endif %}
                     {% if companyInfo.country %}<li><b>Country: </b>{{companyInfo.country}}</li>{% endif %}
-                    {% if phonenumber %}<li><b>Phone Number: </b>{{phonenumber}}</li>{% endif %}
-                    {% if admincontact %}<li><b>Admin Contact: </b>{{admincontact}}</li>{% endif %}
+                    {% if admincontact.phonenumber %}<li><b>Phone Number: </b>{{admincontact.phonenumber}}</li>{% endif %}
+                    {% if admincontact.name %}<li><b>Admin Contact: </b>{{admincontact.name}}</li>{% endif %}
+                    {% if admincontact.email %}<li><b>Email: </b>{{admincontact.email}}</li>{% endif %}
                     {% if companyInfo.address %}<li><b>Time Zone: </b>{{companyInfo.timezone}}</li>{% endif %}
                   </ul> 
                 </div>
