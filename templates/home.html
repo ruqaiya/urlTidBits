@@ -72,14 +72,14 @@
               </div>
             </div>
             <div class="row">
-              <div class="col-sm-8 col-sm-offset-2">
+              <div class="col-sm-10 col-sm-offset-1">
                 <h2 class="module-title font-alt">Senior Python Developer - Technical Project</h2>
                 <form method="POST">
                   {% csrf_token %}
                   <div class="form-group">
                     <div class="input-group">
-                      <div class="input-group-addon"><i class="icon-link"></i></div>
-                        <input class="form-control input-lg" id="url_id" name="url" placeholder="www.example.com - Enter your url and let the magic happen"/>
+                      <div class="input-group-addon"><i class="fa fa-external-link" aria-hidden="true"></i></div>
+                        <input class="form-control input-lg" id="url_id" name="url" placeholder="www.example.com/example.com (Try both one by one) - Enter your url and let the magic happen" {% if raw_url %} value="{{raw_url}}" {% endif %}/>
                       </div>
                   </div>
                   <div class="form-group">
@@ -90,17 +90,19 @@
             </div>
             {% if response %}
             <div class="row multi-columns-row">
+              <br>
               {% if ip %}
               <div align="center">
                 <p>
                   {% if ip == 'error' %}  
-                    <b>There was an error getting the site's ip for which reason many functions will not work. Please confirm the entered format is correct and try again.</b>
+                    <b>Please confirm the entered format is correct and try again.</b>
                   {% else %}
                     <b>The site's IP is: {{ip}}</b>
                   {% endif %}
                 </p>
               </div>
               {% endif %}
+              <br>
               <div class="col-sm-6 col-md-3 col-lg-3">
                 <div class="features-item">
                   <div class="features-icon"><span class="icon-clock"></span></div>
@@ -148,9 +150,15 @@
               <div class="col-sm-6 col-md-3 col-lg-3">
                 <div class="features-item">
                   <div class="features-icon"><span class="icon-heart"></span></div>
-                  <h3 class="features-title font-alt">Alexa Rank</h3>
+                  <h3 class="features-title font-alt">Rankings</h3>
                   <ul>
                     {% if alexarank %}<li><b>Alexa Rank: </b>{{alexarank}}</li>{% endif %}
+                    {% if moz_results %}
+                      <li><b>Page Authority: </b>{{moz_results.page_authority}}</li>
+                      <li><b>Domain Authority: </b>{{moz_results.domain_authority}}</li>
+                      <li><b>Moz Rank (Raw Score): </b>{{moz_results.moz_rank_raw}}</li>
+                      <li><b>Moz Rank (Normalized Score): </b>{{moz_results.moz_rank_normalized}}</li>
+                    {% endif %}
                   </ul>
                 </div>
               </div>

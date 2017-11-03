@@ -684,8 +684,11 @@ a,
 }
 
 .btn.btn-g {
-  background: #e5e5e5;
-  color: #111;
+  /*background: #e5e5e5;
+  color: #111;*/
+
+  background: #0facf3;
+  color: #FFF;
 }
 
 .btn.btn-g:hover,
@@ -847,7 +850,10 @@ a,
 }
 
 .input-group-addon {
-  border: 1px solid #e4e4e4 !important;
+  /*border: 1px solid #e4e4e4 !important;*/
+  border: 1px solid #0facf3 !important;
+  color: #FFF !important;
+  background-color: #0facf3 !important; 
 }
 
 /*--------------------------------------------------------------
@@ -912,14 +918,16 @@ blockquote {
   text-align: center;
   font-weight: 400;
   font-size: 30px;
-  color: #111;
+  /*color: #111;*/
+  color: #f89520;
   margin: 0 0 70px;
 }
 
 .module-subtitle {
   text-align: center;
   font-size: 16px;
-  color: #111;
+  /*color: #111;*/
+  color: #f89520;
   margin-bottom: 70px;
 }
 
@@ -942,7 +950,8 @@ blockquote {
   display: table-cell;
   white-space: pre;
   padding: 0 8px;
-  color: #111;
+  /*color: #111;*/
+  color: #f89520;
 }
 
 /* Finance case study header */
@@ -1562,6 +1571,7 @@ Google map
   font-weight: 400;
   font-size: 14px;
   color: #111;
+  /*color: #f89520;*/
   margin: 16px 0 15px;
 }
 

@@ -13,6 +13,11 @@ import http.client
 from geopy.geocoders import Nominatim
 from builtwith import BuiltWith
 
+import codecs
+import hashlib
+import hmac
+import time
+import base64
 
 # Create your views here.
 
@@ -20,6 +25,7 @@ def home(request):
     context = {}
 
     if request.method == 'POST':
+        raw_url = request.POST['url']
         try:
             ip = get_ip(request.POST['url'])
         except:
@@ -29,7 +35,7 @@ def home(request):
             url_ip = 'http://'+ip
             metaTags = get_meta_tags(url_ip)
             address_data = get_address(ip)
-            social_media_handles = get_social_media_handles(url_ip)        
+            social_media_handles = get_social_media_handles(url_ip)
         else:
             ip = 'error'
             metaTags = None
@@ -40,6 +46,14 @@ def home(request):
         admin_contact = get_admin_contact(url)
 
         alexarank = alexa_rank(request.POST['url'])
+
+        ### testing MOZ API
+
+        try:
+            moz_results = get_moz_details(request.POST['url'])
+        except:
+            moz_results = {}
+            print('moz did not work')
         
         # get_ecommerce_site(request.POST['url'])
 
@@ -51,6 +65,8 @@ def home(request):
             'admincontact': admin_contact,
             'ip':ip,
             'response': True,
+            'raw_url': raw_url,
+            'moz_results': moz_results,
         })
     else:
         pass
@@ -62,16 +78,30 @@ def get_meta_tags(ip):
     """
     Getting meta tags by scraping through the page and looking for the particular tags.
     """
+
     try:
         response = requests.get(ip)
+        # print(response.content)
         soup = BeautifulSoup(response.content, "html.parser")
-
+        # print(soup)
         metas = soup.find_all('meta')
 
+        # print(metas)
         metaTagContent={}
         for meta in metas:
             if 'name' in meta.attrs:
                 metaTagContent[meta.attrs['name']]=meta.attrs['content']
+
+        response = requests.get(ip)
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        title_tag = soup.find_all('title')
+
+        # print(title_tag)
+
+        for title in title_tag:
+            title_text = title.text
+            metaTagContent['title'] = title_text
                        
         return metaTagContent
     except:
@@ -197,14 +227,57 @@ def get_social_media_handles(url):
     except:
         return None
 
+def get_moz_details(url):
+    moz_results={}
+    ### backlinks
+    # API = 'http://lsapi.seomoz.com/linkscape/links/moz.com'
+    # payload = {'Scope':'page_to_page',
+    #             'AccessID': 'mozscape-c65de9bb80',
+    #             'Expires': '1541241748',
+    #             'Signature': create_signature('mozscape-c65de9bb80', 1541241748, '7bae6c85efc211bf84d09f001a488608'),
+    #             'Sort': 'page_authority',
+    #             'Filter':'internal+301',
+    #             'Limit':'1',
+    #             'SourceCols':'536870916',
+    #             'TargetCols':'4',
+    #             }
+
+    API = 'http://lsapi.seomoz.com/linkscape/url-metrics/'+url
+    payload = {'AccessID': 'mozscape-c65de9bb80',
+                'Expires': '1541241748',
+                'Signature': create_signature('mozscape-c65de9bb80', 1541241748, '7bae6c85efc211bf84d09f001a488608'),
+                'Cols':str(1+4+16384+34359738368+68719476736+144115188075855872),
+                }    
+
+    r = requests.get(API, params=payload)
+    moz_dict=json.loads((r.content).decode("utf-8"))
+
+    try:
+        moz_results['moz_rank_normalized'] = moz_dict['umrp']
+        moz_results['moz_rank_raw'] = moz_dict['umrr']
+        moz_results['page_authority'] = moz_dict['upa']
+        moz_results['domain_authority'] = moz_dict['pda']
+    except:
+        pass
+
+    return moz_results
+
+def create_signature(access_id, expires, secret_key):
+    to_sign = '%s\n%i' % (access_id, expires)
+    return base64.b64encode(
+        hmac.new(
+            secret_key.encode('utf-8'),
+            to_sign.encode('utf-8'),
+            hashlib.sha1).digest())
+
 ############### GET ECOMMERCE PLATFORM ##############################
 
 # def get_ecommerce_site(url):
 #     """
 #     Quick and easy solution: Use Builtwith API(but it is a paid resource) 
 #     Another way is to traverse the whole page and start looking for keywords such as shopify and magento in it. Since
-#     mostly all these platforms have their names present in the source code. There are exceptions to that as well for eg
-#     Word press hides itself if we use a plugin. 
+#     mostly all these platforms have their names present in the source code somewhere. There are exceptions to that as well
+#     for eg Word press hides itself if we use a plugin. 
 #     """
 #     # r = requests.get('http://builtwith.com/'+url)
 #     # soup = BeautifulSoup(r1.content, 'html5lib')
