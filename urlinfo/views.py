@@ -26,8 +26,9 @@ def home(request):
 
     if request.method == 'POST':
         raw_url = request.POST['url']
+        half_url = raw_url.split('//')[1]
         try:
-            ip = get_ip(request.POST['url'])
+            ip = get_ip(half_url)
         except:
             ip = None
 
@@ -35,17 +36,17 @@ def home(request):
             url_ip = 'http://'+ip
             metaTags = get_meta_tags(url_ip)
             address_data = get_address(ip)
-            social_media_handles = get_social_media_handles(url_ip)
+            social_media_handles = get_social_media_handles(raw_url)
         else:
             ip = 'error'
             metaTags = None
             address_data = None
             social_media_handles = None
         
-        url = 'http://'+request.POST['url']
-        admin_contact = get_admin_contact(url)
+        # url = 'https://'+request.POST['url']
+        admin_contact = get_admin_contact(raw_url, half_url)
 
-        alexarank = alexa_rank(request.POST['url'])
+        alexarank = alexa_rank(half_url)
 
         ### testing MOZ API
 
@@ -81,12 +82,9 @@ def get_meta_tags(ip):
 
     try:
         response = requests.get(ip)
-        # print(response.content)
         soup = BeautifulSoup(response.content, "html.parser")
-        # print(soup)
         metas = soup.find_all('meta')
 
-        # print(metas)
         metaTagContent={}
         for meta in metas:
             if 'name' in meta.attrs:
@@ -97,12 +95,10 @@ def get_meta_tags(ip):
 
         title_tag = soup.find_all('title')
 
-        # print(title_tag)
-
         for title in title_tag:
             title_text = title.text
             metaTagContent['title'] = title_text
-                       
+                   
         return metaTagContent
     except:
         return None
@@ -125,14 +121,11 @@ def alexa_rank(url):
 
     return bs
 
-def get_admin_contact(url):    
+def get_admin_contact(url, half_url):    
     """
     At the moment I am simply calling whois library to get contact name and email(some times given).
-
     Ideally wanted to traverse https://www.whois.com/whois/
-    for this information since whois library does not return the whole information.
-    Since I did not have time to setup my python environment for ssl so I couldn't traverse https site.
-    That would have given me a phone number as well. 
+    for this information since whois library does not return the whole information. 
     """
     data = {}
 
@@ -155,6 +148,28 @@ def get_admin_contact(url):
         data['email'] = w['emails']
     except:
         pass
+
+
+    ################################## Traversing Who is
+
+    # whois_url = 'https://www.whois.com/whois/'+ half_url
+    # response = requests.get(whois_url)
+    # # print(response.content)
+    # soup = BeautifulSoup(response.content, "html.parser")
+    # raw_data = soup.find(id = 'registrarData')
+
+    # print(type(raw_data.contents[0]))
+
+    # print(type(raw_data))
+    # # print(raw_data)
+
+    # raw_data = raw_data.splitlines()
+
+    # for line in raw_data:
+    #     print('in line')
+    #     print(line)
+
+
 
     return data
 
@@ -186,7 +201,7 @@ def get_address(ip):
 
 ################### GET IP FROM URL ######################
 
-def get_ip(url):    
+def get_ip(url):
     try:
         ip = get_ips_for_host(url)
         return(ip[2][0])
@@ -212,6 +227,7 @@ def get_social_media_handles(url):
     """
     try:
         r = requests.get(url)
+        # print(r.content)
         sm_sites = ['twitter.com','facebook.com', 'plus.google.com', 'pinterest.com', 'instagram.com']
         sm_sites_present = []
 
