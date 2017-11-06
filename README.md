@@ -28,9 +28,8 @@ Since I didn't have time at all during the week to work on the project in detail
 
 1) writing unit tests
 2) Functionalities:
-	1) Cater Urls in all format. Not only the specific method defined.
-	2) Cater HTTPS urls as well.
-	3) If a social media page is entered like facebook.com, the social media handles functionality breaks. I would have liked to fix that.
+	1) Cater HTTPS urls as well.
+	2) If a social media page is entered like facebook.com, the social media handles functionality breaks. I would have liked to fix that.
 3) Make the UI much better.
 4) Test the system on all browsers, for more domains and IPS and document its limitations.
 
@@ -40,15 +39,3 @@ The following URLS are tested: 'taxals.com', 'google.com', 'facebook.com'
 The site is tested only on firefox.
 
 Please be very speciifc to the url format you enter.
-
-Note: Please only enter sites with http scheme and not https scheme. It will not work for https.
-
-Note: The only format that will work is 'www.example.com'. Please write the complete domain of the site.
-
-    The version that will work:
-    www.example.com
-
-    The versions that will not work:
-    http://www.example.com
-    example
-    www.example
