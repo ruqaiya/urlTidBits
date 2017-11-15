@@ -1,27 +1,23 @@
-from django.shortcuts import redirect, render, render_to_response
-from django.template import RequestContext
-from urllib.request import urlopen
+"""Main views module."""
+
+from django.shortcuts import render
 from bs4 import BeautifulSoup
 import requests
 import whois
 
-import re
 import json
 import socket
-import re
-import http.client
 from geopy.geocoders import Nominatim
-from builtwith import BuiltWith
 
-import codecs
 import hashlib
 import hmac
-import time
 import base64
 
 # Create your views here.
 
+
 def home(request):
+    """Main home view."""
     context = {}
 
     if request.method == 'POST':
@@ -33,38 +29,38 @@ def home(request):
             ip = None
 
         if ip is not None:
-            url_ip = 'http://'+ip
-            metaTags = get_meta_tags(url_ip)
+            url_ip = 'http://' + ip
+            meta_tags = get_meta_tags(url_ip)
             address_data = get_address(ip)
             social_media_handles = get_social_media_handles(raw_url)
         else:
             ip = 'error'
-            metaTags = None
+            meta_tags = None
             address_data = None
             social_media_handles = None
-        
+
         # url = 'https://'+request.POST['url']
         admin_contact = get_admin_contact(raw_url, half_url)
 
         alexarank = alexa_rank(half_url)
 
-        ### testing MOZ API
+        # testing MOZ api
 
         try:
             moz_results = get_moz_details(request.POST['url'])
         except:
             moz_results = {}
             print('moz did not work')
-        
+
         # get_ecommerce_site(request.POST['url'])
 
         context.update({
-            'metaTags': metaTags,
+            'meta_tags': meta_tags,
             'alexarank': alexarank,
             'companyInfo': address_data,
             'socialmedia': social_media_handles,
             'admincontact': admin_contact,
-            'ip':ip,
+            'ip': ip,
             'response': True,
             'raw_url': raw_url,
             'moz_results': moz_results,
@@ -77,18 +73,19 @@ def home(request):
 
 def get_meta_tags(ip):
     """
-    Getting meta tags by scraping through the page and looking for the particular tags.
-    """
+    Getting meta tags by scraping through the page.
 
+    Looking for the particular tags.
+    """
     try:
         response = requests.get(ip)
         soup = BeautifulSoup(response.content, "html.parser")
         metas = soup.find_all('meta')
 
-        metaTagContent={}
+        meta_tag_content = {}
         for meta in metas:
             if 'name' in meta.attrs:
-                metaTagContent[meta.attrs['name']]=meta.attrs['content']
+                meta_tag_content[meta.attrs['name']] = meta.attrs['content']
 
         response = requests.get(ip)
         soup = BeautifulSoup(response.content, "html.parser")
@@ -97,23 +94,24 @@ def get_meta_tags(ip):
 
         for title in title_tag:
             title_text = title.text
-            metaTagContent['title'] = title_text
-                   
-        return metaTagContent
+            meta_tag_content['title'] = title_text
+
+        return meta_tag_content
     except:
         return None
 
+
 def alexa_rank(url):
     """
-    Parsing XML from data.alexa.com
-    and taking alexa rank out of it.
+    Parsing XML from data.alexa.com.
+
+    Taking alexa rank out of it.
     """
     try:
-        alexa_rank_url = "http://data.alexa.com/data?cli=10&dat=s&url="+ url
+        alexa_rank_url = "http://data.alexa.com/data?cli=10&dat=s&url=" + url
         r = requests.get(alexa_rank_url)
     except:
         bs = None
-    
     try:
         bs = BeautifulSoup(r.content, "xml").find("REACH")['RANK']
     except:
@@ -121,11 +119,13 @@ def alexa_rank(url):
 
     return bs
 
-def get_admin_contact(url, half_url):    
+
+def get_admin_contact(url, half_url):
     """
-    At the moment I am simply calling whois library to get contact name and email(some times given).
-    Ideally wanted to traverse https://www.whois.com/whois/
-    for this information since whois library does not return the whole information. 
+    I am simply calling whois library to get contact name and email.
+
+    Ideally wanted to traverse https://www.whois.com/whois/ for this
+    information since whois library does not return the whole information.
     """
     data = {}
 
@@ -133,9 +133,11 @@ def get_admin_contact(url, half_url):
         w = whois.whois(url)
     except:
         pass
-    
+
+    # adding each data element in a seperate try/catch so nothing is missed and
+    # all data that is available is extracted.
     try:
-        data['name'] = w['name']        # adding each data element in a seperate try/catch so nothing is missed and all data that is available is extracted.
+        data['name'] = w['name']
     except:
         pass
 
@@ -149,9 +151,7 @@ def get_admin_contact(url, half_url):
     except:
         pass
 
-
-    ################################## Traversing Who is
-
+    # Traversing Who is
     # whois_url = 'https://www.whois.com/whois/'+ half_url
     # response = requests.get(whois_url)
     # # print(response.content)
@@ -169,15 +169,16 @@ def get_admin_contact(url, half_url):
     #     print('in line')
     #     print(line)
 
-
-
     return data
 
-###### GET CONTACT DETAILS + STREET ADDRESS + TIMEZONE ##########################
+# GET CONTACT DETAILS + STREET ADDRESS + TIMEZONE ##########################
+
 
 def get_address(ip):
+    """Get address info."""
+    # getting Country, co-ordinates and street address from ipinfo
     try:
-        url = 'https://ipinfo.io/'+ip+'/json'                   # getting Country, co-ordinates and street address from ipinfo
+        url = 'https://ipinfo.io/' + ip + '/json'
         r = requests.get(url)
         data = json.loads(r.content.decode('utf-8'))
 
@@ -188,9 +189,10 @@ def get_address(ip):
     except:
         data = {}
 
+    # getting timezone from geoip
     try:
-        FREEGEOPIP_URL = 'http://freegeoip.net/json'            # getting timezone from geoip
-        url = '{}/{}'.format(FREEGEOPIP_URL, ip)
+        free_geo_ip_url = 'http://freegeoip.net/json'
+        url = '{}/{}'.format(free_geo_ip_url, ip)
         response = requests.get(url)
         response_data = response.json()
         data['timezone'] = response_data['time_zone']
@@ -199,9 +201,11 @@ def get_address(ip):
 
     return data
 
-################### GET IP FROM URL ######################
+# GET IP FROM URL ######################
+
 
 def get_ip(url):
+    """Get ip from url."""
     try:
         ip = get_ips_for_host(url)
         return(ip[2][0])
@@ -210,29 +214,34 @@ def get_ip(url):
 
     return ip
 
+
 def get_ips_for_host(host):
+    """Get IP from Host."""
     try:
         ips = socket.gethostbyname_ex(host)
     except socket.gaierror:
-        ips=[]
+        ips = []
     return ips
 
-############### GET SOCIAL MEDIA HANDLES ##############################
+# GET SOCIAL MEDIA HANDLES ##############################
+
 
 def get_social_media_handles(url):
     """
     TO-DO: need to ignore the main site if the url is of the same social site.
-    For eg if the url to test is Facebook.com we need to remove facebook.com from
-    sm_sites list.
+
+    For eg if the url to test is Facebook.com we need to remove facebook.com
+    from sm_sites list.
     """
     try:
         r = requests.get(url)
         # print(r.content)
-        sm_sites = ['twitter.com','facebook.com', 'plus.google.com', 'pinterest.com', 'instagram.com']
+        sm_sites = ['twitter.com', 'facebook.com', 'plus.google.com',
+                    'pinterest.com', 'instagram.com']
         sm_sites_present = []
 
         soup = BeautifulSoup(r.content, 'html5lib')
-        all_links = soup.find_all('a', href = True)
+        all_links = soup.find_all('a', href=True)
 
         for sm_site in sm_sites:
             for link in all_links:
@@ -243,14 +252,17 @@ def get_social_media_handles(url):
     except:
         return None
 
+
 def get_moz_details(url):
-    moz_results={}
-    ### backlinks
-    # API = 'http://lsapi.seomoz.com/linkscape/links/moz.com'
+    """Moz Details from api."""
+    moz_results = {}
+    # backlinks
+    # api = 'http://lsapi.seomoz.com/linkscape/links/moz.com'
     # payload = {'Scope':'page_to_page',
     #             'AccessID': 'mozscape-c65de9bb80',
     #             'Expires': '1541241748',
-    #             'Signature': create_signature('mozscape-c65de9bb80', 1541241748, '7bae6c85efc211bf84d09f001a488608'),
+    #             'Signature': create_signature('mozscape-c65de9bb80',
+    #                       1541241748, '7bae6c85efc211bf84d09f001a488608'),
     #             'Sort': 'page_authority',
     #             'Filter':'internal+301',
     #             'Limit':'1',
@@ -258,15 +270,18 @@ def get_moz_details(url):
     #             'TargetCols':'4',
     #             }
 
-    API = 'http://lsapi.seomoz.com/linkscape/url-metrics/'+url
+    api = 'http://lsapi.seomoz.com/linkscape/url-metrics/' + url
     payload = {'AccessID': 'mozscape-c65de9bb80',
-                'Expires': '1541241748',
-                'Signature': create_signature('mozscape-c65de9bb80', 1541241748, '7bae6c85efc211bf84d09f001a488608'),
-                'Cols':str(1+4+16384+34359738368+68719476736+144115188075855872),
-                }    
+               'Expires': '1541241748',
+               'Signature':
+               create_signature('mozscape-c65de9bb80', 1541241748,
+                                '7bae6c85efc211bf84d09f001a488608'),
+               'Cols': str(1 + 4 + 16384 + 34359738368 +
+                           68719476736 + 144115188075855872),
+               }
 
-    r = requests.get(API, params=payload)
-    moz_dict=json.loads((r.content).decode("utf-8"))
+    r = requests.get(api, params=payload)
+    moz_dict = json.loads((r.content).decode("utf-8"))
 
     try:
         moz_results['moz_rank_normalized'] = moz_dict['umrp']
@@ -278,7 +293,9 @@ def get_moz_details(url):
 
     return moz_results
 
+
 def create_signature(access_id, expires, secret_key):
+    """Signature Creation."""
     to_sign = '%s\n%i' % (access_id, expires)
     return base64.b64encode(
         hmac.new(
@@ -286,16 +303,18 @@ def create_signature(access_id, expires, secret_key):
             to_sign.encode('utf-8'),
             hashlib.sha1).digest())
 
-############### GET ECOMMERCE PLATFORM ##############################
+# GET ECOMMERCE PLATFORM ##############################
 
 # def get_ecommerce_site(url):
 #     """
-#     Quick and easy solution: Use Builtwith API(but it is a paid resource) 
-#     Another way is to traverse the whole page and start looking for keywords such as shopify and magento in it. Since
-#     mostly all these platforms have their names present in the source code somewhere. There are exceptions to that as well
-#     for eg Word press hides itself if we use a plugin. 
+#     Quick and easy solution: Use Builtwith api(but it is a paid resource)
+#     Another way is to traverse the whole page and start looking for keywords
+#     such as shopify and magento in it. Since
+#     mostly all these platforms have their names present in the source code
+#     somewhere. There are exceptions to that as well
+#     for eg Word press hides itself if we use a plugin.
 #     """
 #     # r = requests.get('http://builtwith.com/'+url)
 #     # soup = BeautifulSoup(r1.content, 'html5lib')
 #     # print(soup.body.findAll(text=re.compile('^shopify$')))
-#     # print(builtwith.parse(url)) 
+#     # print(builtwith.parse(url))
